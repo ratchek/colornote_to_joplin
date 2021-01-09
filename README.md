@@ -1,6 +1,6 @@
-# This is a script that will import notes from your Colornotes database to Joplin
+##### This is a script that will import notes from your Colornotes database to Joplin
 
-## Why?
+## The "Why?"
 Colornotes unfortunately doesn't allow you to export your data in any way (aside from exporting each note one by one). So if you aren't using it, **don't start now**. If you were and want to switch to a different app, this tool might be for you.
 ##### Why Joplin? Why not csv or markdown or another format?
 Mainly because it's the app I intend on using. Also because it has an API that will enable me to keep the creation and modification dates intact in each note.
@@ -15,11 +15,11 @@ So, what will this tool preserve?
 **Note**: this tool will *not* preserve the creation date for folders, any geolocation data, tags, or anything besides what's listed above. So MAKE SURE YOU HAVE A BACKUP OF YOUR DATABASE.
 ### **I AM NOT RESPONSIBLE FOR ANY LOST DATA**
 
-## Prerequisites:
+
+## The "How?"
+##### Prerequisites:
  * You need python or python3 installed on your system.
  * You need to have the  *requests*, *sqlite3*, and *json* modules installed (but they come pre-installed with python 3, so try not to worry about it)
-
-## How?
 
 ##### Prepping the database
  * First of all, you will need to *get* the database used by colornote. You will need a rooted android phone or emulator. Here's an excellent guide: (You will just need to do till step 7)
@@ -31,7 +31,7 @@ So, what will this tool preserve?
 * Scroll down to lattitude and longitude and delete both. Close the popup, close the sqlite browser and make sure you save the changes.
 * Copy the database into the folder containing *colornote_to_joplin.py* and make sure it's named "colornote.db"
 
-#### Prepping Joplin
+##### Prepping Joplin
  * Open Joplin
  * Go to Tools -> Options -> Webclipper
  * Enable the webclipper service

@@ -26,7 +26,7 @@ So, what will this tool preserve?
 
  	https://android.stackexchange.com/questions/35207/import-data-from-colornote-app
 
-#### ** --- Warning. In order to make this work, you will need to delete geolocation data from your notes, so MAKE SURE YOU HAVE A BACKUP --- **
+#### **  Warning. In order to make this work, you will need to delete geolocation data from your notes, so MAKE SURE YOU HAVE A BACKUP **
 * Once you've opened your database in the sqlite browser, in the "database structure" tab, click on the "notes" table to highlight it. Then click "Modify Table" at the top. You should get a popup window titled "edit table definition"
 * Scroll down to lattitude and longitude and delete both. Close the popup, close the sqlite browser and make sure you save the changes.
 * Copy the database into the folder containing *colornote_to_joplin.py* and make sure it's named "colornote.db"

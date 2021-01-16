@@ -15,13 +15,13 @@ def setup():
     token_string = "?token=" + auth_token
     url = "http://127.0.0.1:{}/".format(port_number)
 
-    conn = sqlite3.connect('colornotes.db')
+    conn = sqlite3.connect('colornote.db')
     cur = conn.cursor()
 
     return (cur, url, token_string)
 
 def get_categories(cur):
-# Get the names of the colornotes "categories"/colors and their corresponding id
+# Get the names of the colornote "categories"/colors and their corresponding id
     cur.execute('SELECT note FROM notes WHERE title = "name_label_0";')
     record = json.loads( cur.fetchone()[0] )['D']
     categories = { key[-1] : record[key]['V'] for key in record }
@@ -29,7 +29,7 @@ def get_categories(cur):
 
 def create_top_level_folder():
 # Create a notebook in Joplin that will contain all the imported notes. Return its id
-    r = requests.post(url+ "folders" + token_string, json={'title':"From colornotes"})
+    r = requests.post(url+ "folders" + token_string, json={'title':"From colornote"})
     return r.json()["id"]
 
 def import_notes(cur, label_id, label_name, url, token_string, top_level_folder_id):

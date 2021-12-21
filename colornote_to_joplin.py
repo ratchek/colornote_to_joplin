@@ -2,6 +2,8 @@ import requests
 import sqlite3
 import json
 
+DATABASE_LOCATION = 'colornote.db'
+
 def setup():
 # Get token, port, and establish connection to database
     print ("Hi. ")
@@ -15,7 +17,7 @@ def setup():
     token_string = "?token=" + auth_token
     url = "http://127.0.0.1:{}/".format(port_number)
 
-    conn = sqlite3.connect('colornote.db')
+    conn = sqlite3.connect(DATABASE_LOCATION)
     cur = conn.cursor()
 
     return (cur, url, token_string)

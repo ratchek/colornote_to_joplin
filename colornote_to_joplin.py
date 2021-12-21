@@ -4,8 +4,26 @@ import json
 
 DATABASE_LOCATION = 'colornote.db'
 
+class Database:
+    """The connection to the database"""
+    def __init__(self, db_location):
+        self.conn = sqlite3.connect(db_location)
+        self.cur = None
+    def execute(self, query):
+        if not self.cur:
+            self.cur = self.conn.cursor()
+        self.cur.execute(query)
+        return self.cur.fetchall()
+    def __del__(self):
+        self.conn.close()
+
+class joplin_api:
+    """Rudementary and very limited Joplin API abstraction"""
+    def __init__(self, token_string, port):
+        # Check you can connect to the API
+        pass
 def setup():
-# Get token, port, and establish connection to database
+    # Get token, port, and establish connection to database
     print ("Hi. ")
     print ("Before we start, make sure you've backed up your database, then modified it according to the instructions in the README. ")
     print ("What's your authorization token?  ")
@@ -17,9 +35,7 @@ def setup():
     token_string = "?token=" + auth_token
     url = "http://127.0.0.1:{}/".format(port_number)
 
-    conn = sqlite3.connect(DATABASE_LOCATION)
-    cur = conn.cursor()
-
+#    /// Connecting to a database went here
     return (cur, url, token_string)
 
 def get_categories(cur):
@@ -54,11 +70,15 @@ def import_notes(cur, label_id, label_name, url, token_string, top_level_folder_
             })
 
 # Main function
-cur, url, token_string = setup()
-top_level_folder_id = create_top_level_folder()
-categories = get_categories(cur)
+db = Database(DATABASE_LOCATION)
+print( db.execute('SELECT note FROM notes WHERE title = "name_label_0";')[0] )
 
-for key in categories:
-    import_notes(cur, key, categories[key], url, token_string, top_level_folder_id)
 
-print ("Looks like we're all done! Thanks.")
+# cur, url, token_string = setup()
+# top_level_folder_id = create_top_level_folder()
+# categories = get_categories(cur)
+#
+# for key in categories:
+#     import_notes(cur, key, categories[key], url, token_string, top_level_folder_id)
+#
+# print ("Looks like we're all done! Thanks.")

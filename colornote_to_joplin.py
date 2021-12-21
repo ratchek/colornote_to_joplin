@@ -4,6 +4,10 @@ import json
 
 DATABASE_LOCATION = 'colornote.db'
 
+class InvalidJoplinConnectionError(Exception):
+    pass
+
+
 class Database:
     """The connection to the database"""
     def __init__(self, db_location):
@@ -17,11 +21,20 @@ class Database:
     def __del__(self):
         self.conn.close()
 
-class joplin_api:
+class JoplinApi:
     """Rudementary and very limited Joplin API abstraction"""
-    def __init__(self, token_string, port):
-        # Check you can connect to the API
-        pass
+    def __init__(self, port, token ):
+        #TODO Check you can connect to the API
+        self.token_string = "?token=" + token
+        self.url = "http://127.0.0.1:{}/".format(port)
+        r = requests.get(self.url + "folders" + self.token_string)
+        if r.status_code != 200:
+            raise InvalidJoplinConnectionError("Joplin API call returned with code {} (should be 200).".format(r.status_code))
+
+    def create_folder(self, name):
+        #TODO add try catch block to make sure you've created the folder and are returning the id
+        r = requests.post(self.url+ "ping" + self.token_string, json={'title':name})
+        return r.json()["id"]
 def setup():
     # Get token, port, and establish connection to database
     print ("Hi. ")
@@ -32,8 +45,7 @@ def setup():
     port_number = input()
     print("Awesome! I'll get right to it. Please hold...")
 
-    token_string = "?token=" + auth_token
-    url = "http://127.0.0.1:{}/".format(port_number)
+
 
 #    /// Connecting to a database went here
     return (cur, url, token_string)
@@ -70,8 +82,10 @@ def import_notes(cur, label_id, label_name, url, token_string, top_level_folder_
             })
 
 # Main function
-db = Database(DATABASE_LOCATION)
-print( db.execute('SELECT note FROM notes WHERE title = "name_label_0";')[0] )
+port = "41184"
+token = "61d1be526ff931d9da99c57d322f1ca314dd0fd09f56d3b56475d42eebba982d2e5823b6d54a9aaaf4ee22223881cd343ab5b2eb37795142027a466b73243f46"
+api = JoplinApi(port, token)
+
 
 
 # cur, url, token_string = setup()

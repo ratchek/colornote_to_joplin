@@ -13,13 +13,11 @@ class JoplinConnectionError(Exception):
         super().__init__(self.message)
 
 class Database:
-    """The connection to the database"""
+    """Database connection manager"""
     def __init__(self, db_location):
         self.conn = sqlite3.connect(db_location)
-        self.cur = None
+        self.cur = self.conn.cursor()
     def execute(self, query):
-        if not self.cur:
-            self.cur = self.conn.cursor()
         self.cur.execute(query)
         return self.cur.fetchall()
     def __del__(self):
@@ -29,7 +27,6 @@ class JoplinApi:
     """Rudementary and very limited Joplin API abstraction"""
     def __init__(self, port, token ):
         """Sets the connection variables and checks if connection can be established"""
-        #TODO Check you can connect to the API
         self.token_string = "?token=" + token
         self.url = "http://127.0.0.1:{}/".format(port)
         r = requests.get(self.url + "folders" + self.token_string)
@@ -103,10 +100,7 @@ def import_notes(database, joplin, label_id, label_name):
     print("Done!")
 
 # Main function
-port = "41184"
-token = "61d1be526ff931d9da99c57d322f1ca314dd0fd09f56d3b56475d42eebba982d2e5823b6d54a9aaaf4ee22223881cd343ab5b2eb37795142027a466b73243f46"
 database, joplin = setup()
-joplin = JoplinApi(port, token)
 
 joplin.create_top_level_folder()
 categories = get_categories(database)

@@ -28,7 +28,7 @@ So, what will this tool preserve?
 
 #### **  Warning. In order to make this work, you will need to delete geolocation data from your notes, so MAKE SURE YOU HAVE A BACKUP **
 * Once you've opened your database in the sqlite browser, in the "database structure" tab, click on the "notes" table to highlight it. Then click "Modify Table" at the top. You should get a popup window titled "edit table definition"
-* Scroll down to lattitude and longitude and delete both. Close the popup, close the sqlite browser and make sure you save the changes.
+* Scroll down to lattitude and longitude and delete both. Close the popup, save the changes by pressing the "Write changes" button at the top and then close the sqlite browser.
 * Copy the database into the folder containing *colornote_to_joplin.py* and make sure it's named "colornote.db"
 
 ##### Prepping Joplin

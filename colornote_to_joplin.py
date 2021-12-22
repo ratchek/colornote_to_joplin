@@ -4,9 +4,13 @@ import json
 
 DATABASE_LOCATION = 'colornote.db'
 
-class InvalidJoplinConnectionError(Exception):
-    pass
-
+class JoplinConnectionError(Exception):
+    def __init__(self, api_call, response_code, response_body):
+        """ Takes the method you were calling, the response code and the response body """
+        self.response_code = response_code
+        self.response_body = response_body
+        self.message = "Joplin API '{}' call returned with code {} (should be 200). Here's the content of the response: \n _____ \n {} \n _____ \n ".format(api_call, response_code, response_body)
+        super().__init__(self.message)
 
 class Database:
     """The connection to the database"""
@@ -24,75 +28,90 @@ class Database:
 class JoplinApi:
     """Rudementary and very limited Joplin API abstraction"""
     def __init__(self, port, token ):
+        """Sets the connection variables and checks if connection can be established"""
         #TODO Check you can connect to the API
         self.token_string = "?token=" + token
         self.url = "http://127.0.0.1:{}/".format(port)
         r = requests.get(self.url + "folders" + self.token_string)
         if r.status_code != 200:
-            raise InvalidJoplinConnectionError("Joplin API call returned with code {} (should be 200).".format(r.status_code))
+            raise JoplinConnectionError("test", r.status_code, r.text)
 
-    def create_folder(self, name):
+    def create_top_level_folder(self):
+        """ Create a notebook in Joplin that will contain all the imported notes."""
         #TODO add try catch block to make sure you've created the folder and are returning the id
-        r = requests.post(self.url+ "ping" + self.token_string, json={'title':name})
+        r = requests.post(self.url+ "folders" + self.token_string, json={'title':"Imported from colornote"})
+        if r.status_code != 200:
+            raise JoplinConnectionError("Create Folder", r.status_code, r.text)
+        self.top_level_folder_id = r.json()["id"]
+
+    def create_subcategory_folder(self, name):
+        """Creates folder in the top level folder and returns it's id"""
+        #TODO add try catch block to make sure you've created the folder and are returning the id
+        r = requests.post(self.url+ "folders" + self.token_string, json={'title':name, 'parent_id' : self.top_level_folder_id})
+        if r.status_code != 200:
+            raise JoplinConnectionError("Create Subfolder", r.status_code, r.text)
         return r.json()["id"]
+
+    def create_note(self, title, folder_id, note_body, user_created_time, user_updated_time):
+        """Creates folder in the top level folder and returns it's id"""
+        #TODO add try catch block to make sure you've created the folder and are returning the id
+        r = requests.post(self.url+ "notes" + self.token_string, json={
+            'title':title,
+            'parent_id' : folder_id,
+            # Note - these two replacements in the body transform the checklists so they still work
+            "body" : note_body.replace("[ ]", "- [ ]").replace("[V]", "- [x]"),
+            "user_created_time": user_created_time,
+            "user_updated_time" : user_updated_time,
+            })
+        if r.status_code != 200:
+            raise JoplinConnectionError("Create Note", r.status_code, r.text)
+
 def setup():
-    # Get token, port, and establish connection to database
+    """ Get token, port, initialize database and joplin api classes """
     print ("Hi. ")
     print ("Before we start, make sure you've backed up your database, then modified it according to the instructions in the README. ")
-    print ("What's your authorization token?  ")
+    print ("\nWhat's your authorization token?  ")
     auth_token = input()
-    print("Great! What port is the webclipper listening on?  ")
+    print("\nGreat! What port is the webclipper listening on?  ")
     port_number = input()
     print("Awesome! I'll get right to it. Please hold...")
 
+    database = Database(DATABASE_LOCATION)
+    joplin = JoplinApi(port_number, auth_token)
 
+    return (database, joplin)
 
-#    /// Connecting to a database went here
-    return (cur, url, token_string)
-
-def get_categories(cur):
-# Get the names of the colornote "categories"/colors and their corresponding id
-    cur.execute('SELECT note FROM notes WHERE title = "name_label_0";')
-    record = json.loads( cur.fetchone()[0] )['D']
+def get_categories(database):
+    """ Get the names of the colornote "categories"/colors and their corresponding id """
+    db_results = database.execute('SELECT note FROM notes WHERE title = "name_label_0";')
+    record = json.loads( db_results[0][0] )['D']
     categories = { key[-1] : record[key]['V'] for key in record }
     return categories
 
-def create_top_level_folder():
-# Create a notebook in Joplin that will contain all the imported notes. Return its id
-    r = requests.post(url+ "folders" + token_string, json={'title':"From colornote"})
-    return r.json()["id"]
 
-def import_notes(cur, label_id, label_name, url, token_string, top_level_folder_id):
-# Move all the notes within a given category/color to a seperate folder in joplin
+
+def import_notes(database, joplin, label_id, label_name):
+    """ Move all the notes within a given category/color to a seperate folder in joplin """
     # Create new folder and save id
-    r = requests.post(url+ "folders" + token_string, json={'title':label_name, 'parent_id' : top_level_folder_id,})
-    folder_id = r.json()["id"]
+    folder_id = joplin.create_subcategory_folder(label_name)
+    print ("--- Creating notes in " + label_name + "---")
     # Get all the notes corresponding to the label
-    cur.execute('SELECT title, note, created_date, modified_date FROM notes WHERE color_index = "{}" AND NOT folder_id = "256";'.format(label_id))
-    record = cur.fetchall()
+    records = database.execute('SELECT title, note, created_date, modified_date FROM notes WHERE color_index = "{}" AND NOT folder_id = "256";'.format(label_id))
     # For each of the notes, import it into the folder we just created
-    # Note - those two replacements in the body transform the checklists so they still work
-    for r in record:
-        r = requests.post(url+ "notes" + token_string, json={
-            'title':r[0],
-            'parent_id' : folder_id,
-            "body" : r[1].replace("[ ]", "- [ ]").replace("[V]", "- [x]"),
-            "user_created_time": int(r[2]),
-            "user_updated_time" : int(r[3]),
-            })
+    for record in records:
+        joplin.create_note(title=record[0], folder_id=folder_id, note_body=record[1], user_created_time=int(record[2]), user_updated_time=int(record[3]),)
+    print("Done!")
 
 # Main function
 port = "41184"
 token = "61d1be526ff931d9da99c57d322f1ca314dd0fd09f56d3b56475d42eebba982d2e5823b6d54a9aaaf4ee22223881cd343ab5b2eb37795142027a466b73243f46"
-api = JoplinApi(port, token)
+database, joplin = setup()
+joplin = JoplinApi(port, token)
 
+joplin.create_top_level_folder()
+categories = get_categories(database)
 
+for key in categories:
+    import_notes(database, joplin, key, categories[key])
 
-# cur, url, token_string = setup()
-# top_level_folder_id = create_top_level_folder()
-# categories = get_categories(cur)
-#
-# for key in categories:
-#     import_notes(cur, key, categories[key], url, token_string, top_level_folder_id)
-#
-# print ("Looks like we're all done! Thanks.")
+print ("Looks like we're all done! Thanks.")

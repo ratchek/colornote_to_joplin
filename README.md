@@ -43,3 +43,6 @@ So, what will this tool preserve?
  * Input API key and port number when prompted.
  * This may take a bit, depending on the ammount of notes you have. Don't freak out.
  * You're done! Congrats.
+
+## The Troubleshooting
+ * If you've deleted both the lattitude and longitude and you're still getting a collation error from sqlite3, go to the "notes" table and set the collation to "none" on all the column variables.  

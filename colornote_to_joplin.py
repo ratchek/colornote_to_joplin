@@ -80,7 +80,7 @@ def setup():
 
 def get_categories(database):
     """ Get the names of the colornote "categories"/colors and their corresponding id """
-    db_results = database.execute('SELECT note FROM notes WHERE title = "name_label_0";')
+    db_results = database.execute('SELECT note FROM notes WHERE title = "name_label_0" COLLATE NOCASE;')
     record = json.loads( db_results[0][0] )['D']
     categories = { key[-1] : record[key]['V'] for key in record }
     return categories

@@ -80,9 +80,27 @@ def setup():
 
 def get_categories(database):
     """ Get the names of the colornote "categories"/colors and their corresponding id """
+    categories = {}
+
+    # First, get the color_index of all categories in with at least one note exists.
+    # Set dummy names for them. They might be replaced in the next step.
+    records = database.execute('SELECT DISTINCT(color_index) FROM notes;')
+    for record in records:
+        categories[record[0]] = 'Category {}'.format(record[0])
+
+    # Now, get the names of the categories for which the user assigned a name.
+    # Doing this is optional, so notes may exist in categories for which no name
+    # was set. If the user didn't set a name for any category, then the following
+    # query will return zero records! Otherwise, there's always one record that
+    # contains the names in its JSON value.
     db_results = database.execute('SELECT note FROM notes WHERE title = "name_label_0" COLLATE NOCASE;')
-    record = json.loads( db_results[0][0] )['D']
-    categories = { key[-1] : record[key]['V'] for key in record }
+    if len(db_results) > 0:
+        print(db_results)
+        record = json.loads(db_results[0][0])['D']
+        for key in record:
+            # Note: Keys are always "USER_COLOR_LABELx" where x is the color_index.
+            categories[key[-1]] = record[key]['V']
+
     return categories
 
 
